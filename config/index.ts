@@ -21,7 +21,8 @@ export const connectDb = async () => {
     try {
       if (MONGO_URL) {
         const connection = await mongoose.connect(MONGO_URL);
-        console.log(`MONGODB CONNECTED : ${connection.connection.host}`);
+        // console.log(`MONGODB CONNECTED : ${connection.connection.host}`);
+        console.log(`MONGODB CONNECTED`);
         isConnected = true;
       } else {
         console.log("No Mongo URL");
@@ -55,4 +56,4 @@ export const connectDb = async () => {
  * This constant represents the port number on which the application's server will listen for incoming requests.
  * It is exported from the 'config' module and can be used to configure the server to listen on the specified port.
  */
-export { PORT, JWT_SECRET ,INDEXER_PORT} from "./config";
+export { PORT, JWT_SECRET } from "./config";

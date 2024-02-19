@@ -34,10 +34,10 @@ const server = http.createServer(app);
 
 // Define a route to check if the backend server is running
 app.get("/", async (req: any, res: any) => {
-  res.send("Apex Backend Server is Running now!");
+  res.send("Imperial Spin Backend Server is Running now!");
 });
 
 // Start the Express server to listen on the specified port
 server.listen(PORT, () => {
-  console.log(`Apex server is running on port ${PORT}`);
+  console.log(`Imperial Spin Backend Server is running on port ${PORT}`);
 });
