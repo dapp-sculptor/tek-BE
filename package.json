@@ -7,14 +7,15 @@
   "main": "index.ts",
   "pre-commit": [
     "ts.check",
-    "build"
+    "build",
+    "add-build"
   ],
   "scripts": {
     "dev": "ts-node-dev index.ts",
-    "index": "ts-node-dev indexer.ts",
-    "start": "ts-node index.ts",
+    "run": "ts-node index.ts",
+    "start": "nodemon src/index.ts",
     "ts.check": "tsc --project tsconfig.json",
-    "build": "tsc --build",
+    "build": "rimraf tsc --build",
     "add-build": "git add dist"
   },
   "dependencies": {
