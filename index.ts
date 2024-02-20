@@ -7,6 +7,7 @@ import { PORT, connectDb as connectMongoDB } from "./config";
 import http from "http";
 
 import WalletRouter from "./routes/WalletRoute";
+import PlayRouter from "./routes/PlayRoute";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -33,6 +34,7 @@ const server = http.createServer(app);
 
 // Define routes for different API endpoints
 app.use("/api/wallet", WalletRouter);
+app.use("/api/game", PlayRouter);
 
 // Define a route to check if the backend server is running
 app.get("/", async (req: any, res: any) => {
