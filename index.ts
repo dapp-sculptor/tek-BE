@@ -6,6 +6,8 @@ import path from 'path';
 import { PORT, connectDb as connectMongoDB } from "./config";
 import http from "http";
 
+import WalletRouter from "./routes/WalletRoute";
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -30,7 +32,7 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 const server = http.createServer(app);
 
 // Define routes for different API endpoints
-// app.use("/api/users", User);
+app.use("/api/wallet", WalletRouter);
 
 // Define a route to check if the backend server is running
 app.get("/", async (req: any, res: any) => {
