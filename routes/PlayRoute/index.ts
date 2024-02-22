@@ -1,9 +1,50 @@
 import { Router, Request, Response, } from "express";
 import User from "../../model/UserModel";
 import History from "../../model/HistoryModel";
+import Game from "../../model/GameModel";
 
 // Create a new instance of the Express Router of handle wallet
 const PlayRouter = Router();
+
+interface GenInterface {
+    U: number;
+    P: number;
+    C: number;
+    prize: any[]
+}
+
+const num_list: Array<number> = [128, 64, 32, 16, 8, 4, 2, 1]
+const order_list: Array<number> = [3, 5, 7, 1, 0, 2, 6, 4]
+const prize_list: Array<number> = [1, 0.5, 2, 0, 10, 0.1, 5, 0.25]
+
+// Generate angle
+const genAngle = (num: number) => {
+    const count = order_list[num]
+    const prize_result = prize_list[count]
+    return 12960 - 22.5 + Math.ceil(45 * (count + Math.random()))
+}
+
+// Generate random number
+const genResult = ({ U, P, C, prize }: GenInterface) => {
+    const origin = Math.random()
+    let rate = Math.pow(origin, 2) * 256
+    //  * (-U / P + 1.5)
+    if (C > P) rate *= P / C
+    for (let i = 0; i < num_list.length; i++) {
+        rate -= num_list[i]
+        if (rate <= 0) {
+            console.log('result--->', i)
+            const angle = genAngle(i)
+            // const angle = genAngle(Math.floor(i + (-U / P + 1)))
+            console.log("angle", angle)
+            return angle
+        }
+    }
+    console.log('result--->', num_list.length)
+    const angle = genAngle(8)
+    console.log("angle", angle)
+    return genAngle(8)
+}
 
 // Consider fee
 
@@ -13,11 +54,21 @@ const PlayRouter = Router();
 PlayRouter.post('/play', async (req: Request, res: Response) => {
     try {
         const userInfo = await User.findOne({ address: req.body.address })
+        const gameInfo = await Game.findOne({})
+        if (!gameInfo) {
+            const newData = new Game({
+                totalPlaying: 0,
+                totalClaimable: 0,
+                totalDeposited: 0,
+                totalClaimed: 0,
+            })
+            await newData.save()
+        }
         if (userInfo) {
             // Add data to json
             if (userInfo.playingAmount != 0 || userInfo.process) {
-                console.warn(`${req.body.address} is playing now`)
-                return res.status(400).json({ error: 'You are playing now' })
+                console.warn(`${req.body.address} is not claimed yet`)
+                return res.status(400).json({ error: 'You are not claimed yet' })
             }
             if (userInfo.depositAmount == 0) {
                 console.warn(`${req.body.address} has not deposit yet`)
@@ -27,11 +78,22 @@ PlayRouter.post('/play', async (req: Request, res: Response) => {
             // Generate random number
             const prize = req.body.prize
             // ...
-            const game_result = 5
+            const game_result = genResult({ U: userInfo.depositAmount, P: gameInfo!.totalPlaying, C: gameInfo!.totalClaimable, prize: prize })
             // Calc claimable amount
             const reward = 500
             const total: number = userInfo.totalDeposited + userInfo.depositAmount
-            await User.findOneAndUpdate({ address: req.body.address }, { depositAmount: 0, playingAmount: userInfo.depositAmount, claimableAmount: reward, totalDeposited: total, process: true })
+            await User.findOneAndUpdate({ address: req.body.address }, {
+                depositAmount: 0,
+                playingAmount: userInfo.depositAmount,
+                claimableAmount: reward,
+                totalDeposited: total,
+                process: true
+            })
+            await Game.findOneAndUpdate({}, {
+                totalPlaying: gameInfo!.totalPlaying + userInfo.depositAmount,
+                totalClaimable: gameInfo!.totalClaimable + reward,
+                totalDeposited: gameInfo!.totalDeposited + userInfo.depositAmount
+            }, { upsert: true })
 
             const tx = new History({
                 address: req.body.address,

@@ -7,7 +7,8 @@ const UserSchema = new mongoose.Schema({
   claimableAmount: { type: Number, default: 0 },
   totalDeposited: { type: Number, default: 0 },
   totalClaimed: { type: Number, default: 0 },
-  process: { type: Boolean, default: false }
+  process: { type: Boolean, default: false },
+  risk: { type: String }
 });
 
 const UserModel = mongoose.model("user", UserSchema);
