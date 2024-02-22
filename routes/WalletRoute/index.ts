@@ -8,6 +8,14 @@ const WalletRouter = Router();
 
 // Consider fee
 
+WalletRouter.get('/test', async (req: Request, res: Response) => {
+    try {
+        res.json('Wallet router is working now')
+    } catch (e) {
+        console.warn(e)
+        return res.status(500).json({ error: `Internal Error -> ${e}` })
+    }
+})
 // @route    POST api/wallet/deposit
 // @desc     User deposit token to play game
 // @access   Public -> Private (need research for security, to expand multi deposit)
@@ -24,20 +32,20 @@ WalletRouter.post('/deposit', async (req: Request, res: Response) => {
         if (userInfo) {
 
             // User have already deposit
-            if (userInfo.depositAmount != 0) {
-                console.warn(`${req.body.address} has already deposit`)
-                return res.status(400).json({ error: 'You have already deposit' })
-            }
-
-            // if (userInfo.playingAmount != 0) {
-            //     console.warn(`${req.body.address} is playing now`)
-            //     return res.status(400).json({ error: 'You have are playing game now' })
+            // if (userInfo.depositAmount != 0) {
+            //     console.warn(`${req.body.address} has already deposit`)
+            //     return res.status(400).json({ error: 'You have already deposit' })
             // }
+
+            if (userInfo.playingAmount != 0) {
+                console.warn(`${req.body.address} is playing now`)
+                return res.status(400).json({ error: 'You have are playing game now' })
+            }
 
             // Total deposit should be updated after play
             // let totalDeposited: number = 0
             // totalDeposited = userInfo.totalDeposited + Number(req.body.amount)
-            await User.findOneAndUpdate({ address: req.body.address }, { depositAmount: req.body.amount })
+            await User.findOneAndUpdate({ address: req.body.address }, { depositAmount: Number(req.body.amount) + userInfo.depositAmount})
             const tx = new History({
                 address: req.body.address,
                 action: 'deposit',

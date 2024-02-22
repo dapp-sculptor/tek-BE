@@ -50,6 +50,15 @@ const genResult = ({ U, P, C, prize }) => {
     return genAngle(8);
 };
 // Consider fee
+PlayRouter.get('/test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        res.json('Play router is working now');
+    }
+    catch (e) {
+        console.warn(e);
+        return res.status(500).json({ error: `Internal Error -> ${e}` });
+    }
+}));
 // @route    POST api/wallet/start
 // @desc     User play the spin wheel
 // @access   Public -> Private (need research for security, to expand multi deposit)

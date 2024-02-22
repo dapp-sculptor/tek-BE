@@ -48,6 +48,15 @@ const genResult = ({ U, P, C, prize }: GenInterface) => {
 
 // Consider fee
 
+PlayRouter.get('/test', async (req: Request, res: Response) => {
+    try {
+        res.json('Play router is working now')
+    } catch (e) {
+        console.warn(e)
+        return res.status(500).json({ error: `Internal Error -> ${e}` })
+    }
+})
+
 // @route    POST api/wallet/start
 // @desc     User play the spin wheel
 // @access   Public -> Private (need research for security, to expand multi deposit)
