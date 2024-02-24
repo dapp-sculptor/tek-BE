@@ -19,7 +19,7 @@ connectMongoDB();
 const app = express();
 
 // Set up Cross-Origin Resource Sharing (CORS) options
-app.use(cors());
+app.use(cors()); // origin frontend site
 
 // Serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, './public')));

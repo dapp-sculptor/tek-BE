@@ -2,10 +2,11 @@ import { Router, Request, Response, } from "express";
 import User from "../../model/UserModel";
 import History from "../../model/HistoryModel";
 import Game from "../../model/GameModel";
-import { RBYAmount, solanaNet, treasuryPrivKey } from "../../config/config";
+import { RBYAmount, solanaNet, tokenMint, treasuryPrivKey } from "../../config/config";
 
 import { Connection, PublicKey, Keypair, Transaction, clusterApiUrl, LAMPORTS_PER_SOL, SystemProgram, sendAndConfirmTransaction } from "@solana/web3.js";
 import bs58 from 'bs58';
+import { getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 
 // Create a new instance of the Express Router of handle wallet
 const WalletRouter = Router();
@@ -46,6 +47,20 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
         console.warn(e)
         return ''
     }
+}
+
+export const getTokenAccount = async () => {
+    const connection = new Connection(clusterApiUrl(solanaNet))
+    const treasuryKeypair = Keypair.fromSecretKey(
+        bs58.decode(treasuryPrivKey)
+    )
+    const treasuryTokenAccount = await getOrCreateAssociatedTokenAccount(
+        connection,
+        treasuryKeypair,
+        new PublicKey(tokenMint),
+        treasuryKeypair.publicKey
+    );
+    return treasuryTokenAccount
 }
 
 WalletRouter.get('/test', async (req: Request, res: Response) => {
@@ -125,6 +140,7 @@ WalletRouter.post('/deposit', async (req: Request, res: Response) => {
         return res.status(500).json({ error: `Internal Error -> ${e}` })
     }
 })
+
 // @route    POST api/wallet/fetch
 // @desc     User fetch all data
 // @access   Public -> Private (need research for security, to expand multi deposit)
@@ -238,6 +254,9 @@ WalletRouter.post('/claim', async (req: Request, res: Response) => {
     }
 })
 
+WalletRouter.get('/tokenaccount', async (req: Request, res: Response) =>{
+    res.json(await getTokenAccount())
+})
 // @route    POST api/wallet/withdraw
 // @desc     User withdraw token already deposited
 // @access   Public

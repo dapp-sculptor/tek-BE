@@ -15,4 +15,5 @@ export const PORT = process.env.PORT
 export const JWT_SECRET = process.env.JWT_SECRET || "JWT_SECRET";
 export const RBYAmount = Number(process.env.RBY_AMOUNT)
 export const treasuryPrivKey = process.env.TREASURY_PRIVATE_KEY!.toString()
+export const tokenMint = process.env.TOKEN_ADDR!.toString()
 export const solanaNet: 'devnet' | 'mainnet-beta' = process.env.SOLANA_NET as 'devnet' | 'mainnet-beta';

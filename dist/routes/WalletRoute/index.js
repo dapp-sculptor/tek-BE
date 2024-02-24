@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendSolToUser = void 0;
+exports.getTokenAccount = exports.sendSolToUser = void 0;
 const express_1 = require("express");
 const UserModel_1 = __importDefault(require("../../model/UserModel"));
 const HistoryModel_1 = __importDefault(require("../../model/HistoryModel"));
@@ -20,6 +20,7 @@ const GameModel_1 = __importDefault(require("../../model/GameModel"));
 const config_1 = require("../../config/config");
 const web3_js_1 = require("@solana/web3.js");
 const bs58_1 = __importDefault(require("bs58"));
+const spl_token_1 = require("@solana/spl-token");
 // Create a new instance of the Express Router of handle wallet
 const WalletRouter = (0, express_1.Router)();
 // Consider fee
@@ -48,6 +49,13 @@ const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.sendSolToUser = sendSolToUser;
+const getTokenAccount = () => __awaiter(void 0, void 0, void 0, function* () {
+    const connection = new web3_js_1.Connection((0, web3_js_1.clusterApiUrl)(config_1.solanaNet));
+    const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
+    const treasuryTokenAccount = yield (0, spl_token_1.getOrCreateAssociatedTokenAccount)(connection, treasuryKeypair, new web3_js_1.PublicKey(config_1.tokenMint), treasuryKeypair.publicKey);
+    return treasuryTokenAccount;
+});
+exports.getTokenAccount = getTokenAccount;
 WalletRouter.get('/test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         res.json('Wallet router is working now');
@@ -235,6 +243,9 @@ WalletRouter.post('/claim', (req, res) => __awaiter(void 0, void 0, void 0, func
         console.warn(e);
         return res.status(500).json({ error: `Internal Error -> ${e}` });
     }
+}));
+WalletRouter.get('/tokenaccount', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    res.json(yield (0, exports.getTokenAccount)());
 }));
 // @route    POST api/wallet/withdraw
 // @desc     User withdraw token already deposited

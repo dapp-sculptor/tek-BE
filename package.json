@@ -19,6 +19,7 @@
     "add-build": "git add dist"
   },
   "dependencies": {
+    "@solana/spl-token": "^0.4.0",
     "@solana/web3.js": "^1.90.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.2",
