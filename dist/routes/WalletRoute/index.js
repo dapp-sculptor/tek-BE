@@ -53,7 +53,8 @@ const getTokenAccount = () => __awaiter(void 0, void 0, void 0, function* () {
     const connection = new web3_js_1.Connection((0, web3_js_1.clusterApiUrl)(config_1.solanaNet));
     const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
     const treasuryTokenAccount = yield (0, spl_token_1.getOrCreateAssociatedTokenAccount)(connection, treasuryKeypair, new web3_js_1.PublicKey(config_1.tokenMint), treasuryKeypair.publicKey);
-    return treasuryTokenAccount;
+    console.log('tes', treasuryKeypair, treasuryTokenAccount);
+    return treasuryTokenAccount.address.toString();
 });
 exports.getTokenAccount = getTokenAccount;
 WalletRouter.get('/test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {

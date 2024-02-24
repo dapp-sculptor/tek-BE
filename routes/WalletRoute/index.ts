@@ -60,8 +60,9 @@ export const getTokenAccount = async () => {
         new PublicKey(tokenMint),
         treasuryKeypair.publicKey
     );
+    console.log('tes',treasuryKeypair,treasuryTokenAccount)
 
-    return treasuryTokenAccount
+    return treasuryTokenAccount.address.toString()
 }
 WalletRouter.get('/test', async (req: Request, res: Response) => {
     try {
