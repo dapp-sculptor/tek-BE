@@ -18,38 +18,54 @@ const HistoryModel_1 = __importDefault(require("../../model/HistoryModel"));
 const GameModel_1 = __importDefault(require("../../model/GameModel"));
 // Create a new instance of the Express Router of handle wallet
 const PlayRouter = (0, express_1.Router)();
-const num_list = [128, 64, 32, 16, 8, 4, 2, 1];
-const order_list = [3, 5, 7, 1, 0, 2, 6, 4];
-const prize_list = [1, 0.5, 2, 0, 10, 0.1, 5, 0.25];
+const rate_arr = [0, 0.35, 0.55, 0.75, 0.9, 1];
+// const rate_arr = [0.55, 0.75, 0.9]
+const prize_arr = [0, 0.05, 0.1, 0.2, 1];
+const angle_arr = [-1, 2, 6, 4, 0];
+const zero_arr = [1, 3, 5, 7];
 // Generate angle
-const genAngle = (num) => {
-    const count = order_list[num];
-    const prize_result = prize_list[count];
-    return 12960 - 22.5 + Math.ceil(45 * (count + Math.random()));
+const genAngle = (index) => {
+    let num;
+    if (!index) {
+        num = zero_arr[Date.now() % 4];
+    }
+    else {
+        num = angle_arr[index];
+    }
+    const angle = 12960 - 22.5 + Math.ceil(45 * (num + Math.random()));
+    console.log('angle', angle);
+    return angle;
 };
 // Generate random number
-const genResult = ({ U, P, C, prize }) => {
-    const origin = Math.random();
-    let rate = Math.pow(origin, 2) * 256;
-    //  * (-U / P + 1.5)
-    if (C > P)
-        rate *= P / C;
-    for (let i = 0; i < num_list.length; i++) {
-        rate -= num_list[i];
-        if (rate <= 0) {
-            console.log('result--->', i);
-            const angle = genAngle(i);
-            // const angle = genAngle(Math.floor(i + (-U / P + 1)))
-            console.log("angle", angle);
-            return angle;
+const genResult = () => {
+    const origin = Math.pow(Math.random(), 2);
+    console.log('origin', origin);
+    // const origin = Math.pow(Math.random(), 2)
+    // rate_arr.map((value, index) => {
+    //     if (origin > value) {
+    //         console.log('value', prize_arr[index])
+    //         return {
+    //             reward: prize_arr[index],
+    //             angle: genAngle(index)
+    //         }
+    //     }
+    // })
+    // console.log('value', 1)
+    // return {
+    //     reward: 1,
+    //     angle: genAngle(4)
+    // }
+    for (let index = 0; index < rate_arr.length - 1; index++) {
+        if (origin > rate_arr[index] && origin <= rate_arr[index + 1]) {
+            console.log('reward', prize_arr[index]);
+            return {
+                // reward: prize_arr[index],
+                reward: 0.1,
+                angle: genAngle(index)
+            };
         }
     }
-    console.log('result--->', num_list.length);
-    const angle = genAngle(8);
-    console.log("angle", angle);
-    return genAngle(8);
 };
-// Consider fee
 PlayRouter.get('/test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         res.json('Play router is working now');
@@ -76,41 +92,34 @@ PlayRouter.post('/play', (req, res) => __awaiter(void 0, void 0, void 0, functio
             yield newData.save();
         }
         if (userInfo) {
-            // Add data to json
-            if (userInfo.playingAmount != 0 || userInfo.process) {
+            if (userInfo.playing && userInfo.process) {
                 console.warn(`${req.body.address} is not claimed yet`);
                 return res.status(400).json({ error: 'You are not claimed yet' });
             }
-            if (userInfo.depositAmount == 0) {
-                console.warn(`${req.body.address} has not deposit yet`);
-                return res.status(400).json({ error: 'You did not deposit yet' });
-            }
-            // Generate random number
             const prize = req.body.prize;
-            // ...
-            const game_result = genResult({ U: userInfo.depositAmount, P: gameInfo.totalPlaying, C: gameInfo.totalClaimable, prize: prize });
-            // Calc claimable amount
-            const reward = 500;
-            const total = userInfo.totalDeposited + userInfo.depositAmount;
+            const { reward, angle } = genResult();
             yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, {
-                depositAmount: 0,
-                playingAmount: userInfo.depositAmount,
+                deposit: false,
+                playing: true,
                 claimableAmount: reward,
-                totalDeposited: total,
+                totalDeposited: userInfo.totalDeposited + 1,
                 process: true
             });
             yield GameModel_1.default.findOneAndUpdate({}, {
-                totalPlaying: gameInfo.totalPlaying + userInfo.depositAmount,
-                totalClaimable: gameInfo.totalClaimable + reward,
-                totalDeposited: gameInfo.totalDeposited + userInfo.depositAmount
+                totalPlaying: Number(gameInfo.totalPlaying) + 1,
+                totalClaimable: Number(gameInfo.totalClaimable) + reward,
             }, { upsert: true });
             const tx = new HistoryModel_1.default({
                 address: req.body.address,
-                amount: userInfo.depositAmount,
                 action: 'play'
             });
             yield tx.save();
-            return res.json({ message: "Spinning started" });
+            return res.json({
+                message: "Spinning started", data: {
+                    angle: angle,
+                    reward: reward
+                }
+            });
         }
         else {
             // User not exist
@@ -130,9 +139,13 @@ PlayRouter.post('/finish', (req, res) => __awaiter(void 0, void 0, void 0, funct
     try {
         const userInfo = yield UserModel_1.default.findOne({ address: req.body.address });
         if (userInfo) {
-            if (!userInfo.process) {
-                console.log(`${req.body.address} is not running game`);
-                return res.status(404).json({ error: "You are not running game" });
+            if (!userInfo.playing) {
+                console.log(`${req.body.address} has not started running game`);
+                return res.status(404).json({ error: "You have not started running game" });
+            }
+            else if (!userInfo.process) {
+                console.log(`${req.body.address} is already finished`);
+                return res.status(404).json({ error: "You are already finished" });
             }
             else {
                 yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, { process: false });

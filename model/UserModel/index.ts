@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
   address: { type: String, required: true },
-  depositAmount: { type: Number, default: 0 },
-  playingAmount: { type: Number, default: 0 },
+  deposit: { type: Boolean, default: false },
+  playing: { type: Boolean, default: false },
   claimableAmount: { type: Number, default: 0 },
   totalDeposited: { type: Number, default: 0 },
   totalClaimed: { type: Number, default: 0 },

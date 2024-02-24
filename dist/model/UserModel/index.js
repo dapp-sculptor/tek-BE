@@ -6,8 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const UserSchema = new mongoose_1.default.Schema({
     address: { type: String, required: true },
-    depositAmount: { type: Number, default: 0 },
-    playingAmount: { type: Number, default: 0 },
+    deposit: { type: Boolean, default: false },
+    playing: { type: Boolean, default: false },
     claimableAmount: { type: Number, default: 0 },
     totalDeposited: { type: Number, default: 0 },
     totalClaimed: { type: Number, default: 0 },

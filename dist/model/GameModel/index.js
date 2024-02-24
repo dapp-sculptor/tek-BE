@@ -7,7 +7,6 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const GameSchema = new mongoose_1.default.Schema({
     totalPlaying: { type: Number, default: 0 },
     totalClaimable: { type: Number, default: 0 },
-    totalDeposited: { type: Number, default: 0 },
     totalClaimed: { type: Number, default: 0 }
 });
 const GameModel = mongoose_1.default.model("game", GameSchema);
