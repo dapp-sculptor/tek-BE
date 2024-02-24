@@ -20,10 +20,7 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
         )
 
         // Connect to cluster
-        // const connection = new Connection(clusterApiUrl('devnet'));
-        // const connection = new Connection("https://devnet.helius-rpc.com/?api-key=a632ca12-a781-4a5a-ab8a-d4314facfec7")
-        
-        const connection = new Connection('https://api.devnet.solana.com');
+        const connection = new Connection(clusterApiUrl(solanaNet));
 
         // Add transfer instruction to transaction
         const userWalletPK = new PublicKey(userWallet);
@@ -34,13 +31,9 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
                 lamports: amount * LAMPORTS_PER_SOL,
             })
         );
-        console.log("1")
         const recentBlockhash = await connection.getLatestBlockhash()
-        console.log('recentBlockhash',recentBlockhash)
         transaction.recentBlockhash = recentBlockhash.blockhash;
-        console.log("2")    
         transaction.feePayer = treasuryKeypair.publicKey
-        console.log("3")
 
         // Sign transaction, broadcast, and confirm
         const signature = await sendAndConfirmTransaction(
@@ -48,7 +41,6 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
             transaction,
             [treasuryKeypair]
         );
-        console.log(userWallet, signature);
         return signature
     } catch (e) {
         console.warn(e)
@@ -102,30 +94,31 @@ WalletRouter.post('/deposit', async (req: Request, res: Response) => {
                 tx: req.body.tx
             })
             await tx.save()
+            console.log(`${req.body.address} deposit`)
             return res.json({
                 message: "Successfully deposited", data: {
                     amount: RBYAmount
                 }
             })
         } else {
-            // User new deposit
-            const newUser = new User({
-                address: req.body.address,
-                depositAmount: req.body.amount,
-            })
-            await newUser.save()
-            const tx = new History({
-                address: req.body.address,
-                action: 'deposit',
-                amount: req.body.amount,
-                tx: req.body.tx
-            })
-            await tx.save()
-            return res.json({
-                message: "Successfully registered and deposited", data: {
-                    amount: req.body.amount
-                }
-            })
+            // // User new deposit
+            // const newUser = new User({
+            //     address: req.body.address,
+            //     depositAmount: req.body.amount,
+            // })
+            // await newUser.save()
+            // const tx = new History({
+            //     address: req.body.address,
+            //     action: 'deposit',
+            //     amount: req.body.amount,
+            //     tx: req.body.tx
+            // })
+            // await tx.save()
+            // return res.json({
+            //     message: "Successfully registered and deposited", data: {
+            //         amount: req.body.amount
+            //     }
+            // })
         }
     } catch (e) {
         console.warn(e)
@@ -221,7 +214,6 @@ WalletRouter.post('/claim', async (req: Request, res: Response) => {
                 totalClaimed: gameInfo!.totalClaimed + userInfo.claimableAmount
             })
 
-
             const tx = new History({
                 address: req.body.address,
                 action: 'claim',
@@ -229,6 +221,7 @@ WalletRouter.post('/claim', async (req: Request, res: Response) => {
                 tx: signature
             })
             await tx.save()
+            console.log(`${req.body.address} claimed`)
             return res.json({
                 message: "Successfully claimed", data: {
                     signature: signature

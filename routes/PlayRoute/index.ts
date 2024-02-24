@@ -21,34 +21,15 @@ const genAngle = (index: number) => {
         num = angle_arr[index]
     }
     const angle = 12960 - 22.5 + Math.ceil(45 * (num + Math.random()))
-    console.log('angle', angle)
     return angle
 }
 // Generate random number
 const genResult = () => {
     const origin = Math.pow(Math.random(), 2)
-    console.log('origin', origin)
-    // const origin = Math.pow(Math.random(), 2)
-    // rate_arr.map((value, index) => {
-    //     if (origin > value) {
-    //         console.log('value', prize_arr[index])
-    //         return {
-    //             reward: prize_arr[index],
-    //             angle: genAngle(index)
-    //         }
-    //     }
-    // })
-    // console.log('value', 1)
-    // return {
-    //     reward: 1,
-    //     angle: genAngle(4)
-    // }
     for (let index = 0; index < rate_arr.length - 1; index++) {
         if (origin > rate_arr[index] && origin <= rate_arr[index + 1]) {
-            console.log('reward', prize_arr[index])
             return {
-                // reward: prize_arr[index],
-                reward: 0.1,
+                reward: prize_arr[index],
                 angle: genAngle(index)
             }
         }
@@ -104,6 +85,7 @@ PlayRouter.post('/play', async (req: Request, res: Response) => {
                 action: 'play'
             })
             await tx.save()
+            console.log(`${req.body.address} started play`)
             return res.json({
                 message: "Spinning started", data: {
                     angle: angle,
@@ -140,6 +122,7 @@ PlayRouter.post('/finish', async (req: Request, res: Response) => {
                     address: req.body.address,
                     action: 'finish'
                 })
+                console.log(`${req.body.address} finished`)
                 return res.json({ message: "Game is finished" })
             }
         } else {

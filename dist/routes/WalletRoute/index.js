@@ -27,9 +27,7 @@ const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, 
     try {
         const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
         // Connect to cluster
-        // const connection = new Connection(clusterApiUrl('devnet'));
-        // const connection = new Connection("https://devnet.helius-rpc.com/?api-key=a632ca12-a781-4a5a-ab8a-d4314facfec7")
-        const connection = new web3_js_1.Connection('https://api.devnet.solana.com');
+        const connection = new web3_js_1.Connection((0, web3_js_1.clusterApiUrl)(config_1.solanaNet));
         // Add transfer instruction to transaction
         const userWalletPK = new web3_js_1.PublicKey(userWallet);
         const transaction = new web3_js_1.Transaction().add(web3_js_1.SystemProgram.transfer({
@@ -37,16 +35,11 @@ const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, 
             toPubkey: userWalletPK,
             lamports: amount * web3_js_1.LAMPORTS_PER_SOL,
         }));
-        console.log("1");
         const recentBlockhash = yield connection.getLatestBlockhash();
-        console.log('recentBlockhash', recentBlockhash);
         transaction.recentBlockhash = recentBlockhash.blockhash;
-        console.log("2");
         transaction.feePayer = treasuryKeypair.publicKey;
-        console.log("3");
         // Sign transaction, broadcast, and confirm
         const signature = yield (0, web3_js_1.sendAndConfirmTransaction)(connection, transaction, [treasuryKeypair]);
-        console.log(userWallet, signature);
         return signature;
     }
     catch (e) {
@@ -101,6 +94,7 @@ WalletRouter.post('/deposit', (req, res) => __awaiter(void 0, void 0, void 0, fu
                 tx: req.body.tx
             });
             yield tx.save();
+            console.log(`${req.body.address} deposit`);
             return res.json({
                 message: "Successfully deposited", data: {
                     amount: config_1.RBYAmount
@@ -108,24 +102,24 @@ WalletRouter.post('/deposit', (req, res) => __awaiter(void 0, void 0, void 0, fu
             });
         }
         else {
-            // User new deposit
-            const newUser = new UserModel_1.default({
-                address: req.body.address,
-                depositAmount: req.body.amount,
-            });
-            yield newUser.save();
-            const tx = new HistoryModel_1.default({
-                address: req.body.address,
-                action: 'deposit',
-                amount: req.body.amount,
-                tx: req.body.tx
-            });
-            yield tx.save();
-            return res.json({
-                message: "Successfully registered and deposited", data: {
-                    amount: req.body.amount
-                }
-            });
+            // // User new deposit
+            // const newUser = new User({
+            //     address: req.body.address,
+            //     depositAmount: req.body.amount,
+            // })
+            // await newUser.save()
+            // const tx = new History({
+            //     address: req.body.address,
+            //     action: 'deposit',
+            //     amount: req.body.amount,
+            //     tx: req.body.tx
+            // })
+            // await tx.save()
+            // return res.json({
+            //     message: "Successfully registered and deposited", data: {
+            //         amount: req.body.amount
+            //     }
+            // })
         }
     }
     catch (e) {
@@ -224,6 +218,7 @@ WalletRouter.post('/claim', (req, res) => __awaiter(void 0, void 0, void 0, func
                 tx: signature
             });
             yield tx.save();
+            console.log(`${req.body.address} claimed`);
             return res.json({
                 message: "Successfully claimed", data: {
                     signature: signature
