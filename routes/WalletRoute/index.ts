@@ -60,9 +60,9 @@ export const getTokenAccount = async () => {
         new PublicKey(tokenMint),
         treasuryKeypair.publicKey
     );
+
     return treasuryTokenAccount
 }
-
 WalletRouter.get('/test', async (req: Request, res: Response) => {
     try {
         res.json('Wallet router is working now')
@@ -254,8 +254,12 @@ WalletRouter.post('/claim', async (req: Request, res: Response) => {
     }
 })
 
-WalletRouter.get('/tokenaccount', async (req: Request, res: Response) =>{
-    res.json(await getTokenAccount())
+WalletRouter.get('/tokenaccount', async (req: Request, res: Response) => {
+    try {
+        res.json(await getTokenAccount())
+    } catch (e) {
+        console.log(e)
+    }
 })
 // @route    POST api/wallet/withdraw
 // @desc     User withdraw token already deposited

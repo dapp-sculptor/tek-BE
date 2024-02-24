@@ -245,7 +245,12 @@ WalletRouter.post('/claim', (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 }));
 WalletRouter.get('/tokenaccount', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    res.json(yield (0, exports.getTokenAccount)());
+    try {
+        res.json(yield (0, exports.getTokenAccount)());
+    }
+    catch (e) {
+        console.log(e);
+    }
 }));
 // @route    POST api/wallet/withdraw
 // @desc     User withdraw token already deposited
