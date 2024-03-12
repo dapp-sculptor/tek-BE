@@ -19,8 +19,7 @@ const GameModel_1 = __importDefault(require("../../model/GameModel"));
 // Create a new instance of the Express Router of handle wallet
 const PlayRouter = (0, express_1.Router)();
 const rate_arr = [0, 0.35, 0.55, 0.75, 0.9, 1];
-// const rate_arr = [0.55, 0.75, 0.9]
-const prize_arr = [0, 0.05, 0.1, 0.2, 1];
+const prize_arr = [0, 0.05, 0.1, 0.2, 0.5];
 const angle_arr = [-1, 2, 6, 4, 0];
 const zero_arr = [1, 3, 5, 7];
 // Generate angle
@@ -37,7 +36,7 @@ const genAngle = (index) => {
 };
 // Generate random number
 const genResult = () => {
-    const origin = Math.pow(Math.random(), 2);
+    const origin = Math.random();
     for (let index = 0; index < rate_arr.length - 1; index++) {
         if (origin > rate_arr[index] && origin <= rate_arr[index + 1]) {
             return {
@@ -63,15 +62,6 @@ PlayRouter.post('/play', (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         const userInfo = yield UserModel_1.default.findOne({ address: req.body.address });
         const gameInfo = yield GameModel_1.default.findOne({});
-        if (!gameInfo) {
-            const newData = new GameModel_1.default({
-                totalPlaying: 0,
-                totalClaimable: 0,
-                totalDeposited: 0,
-                totalClaimed: 0,
-            });
-            yield newData.save();
-        }
         if (userInfo) {
             if (userInfo.playing && userInfo.process) {
                 console.warn(`${req.body.address} is not claimed yet`);

@@ -23,12 +23,11 @@ const bs58_1 = __importDefault(require("bs58"));
 const spl_token_1 = require("@solana/spl-token");
 // Create a new instance of the Express Router of handle wallet
 const WalletRouter = (0, express_1.Router)();
-// Consider fee
+const connection = new web3_js_1.Connection(config_1.rpcURL);
 const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
         // Connect to cluster
-        const connection = new web3_js_1.Connection((0, web3_js_1.clusterApiUrl)(config_1.solanaNet));
         // Add transfer instruction to transaction
         const userWalletPK = new web3_js_1.PublicKey(userWallet);
         const transaction = new web3_js_1.Transaction().add(web3_js_1.SystemProgram.transfer({
@@ -50,7 +49,6 @@ const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, 
 });
 exports.sendSolToUser = sendSolToUser;
 const getTokenAccount = () => __awaiter(void 0, void 0, void 0, function* () {
-    const connection = new web3_js_1.Connection((0, web3_js_1.clusterApiUrl)(config_1.solanaNet));
     const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
     const treasuryTokenAccount = yield (0, spl_token_1.getOrCreateAssociatedTokenAccount)(connection, treasuryKeypair, new web3_js_1.PublicKey(config_1.tokenMint), treasuryKeypair.publicKey);
     console.log('tes', treasuryKeypair, treasuryTokenAccount);

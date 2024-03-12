@@ -7,8 +7,7 @@ import Game from "../../model/GameModel";
 const PlayRouter = Router();
 
 const rate_arr = [0, 0.35, 0.55, 0.75, 0.9, 1]
-// const rate_arr = [0.55, 0.75, 0.9]
-const prize_arr = [0, 0.05, 0.1, 0.2, 1]
+const prize_arr = [0, 0.05, 0.1, 0.2, 0.5]
 const angle_arr = [-1, 2, 6, 4, 0]
 const zero_arr = [1, 3, 5, 7]
 
@@ -25,7 +24,7 @@ const genAngle = (index: number) => {
 }
 // Generate random number
 const genResult = () => {
-    const origin = Math.pow(Math.random(), 2)
+    const origin = Math.random()
     for (let index = 0; index < rate_arr.length - 1; index++) {
         if (origin > rate_arr[index] && origin <= rate_arr[index + 1]) {
             return {
@@ -52,15 +51,6 @@ PlayRouter.post('/play', async (req: Request, res: Response) => {
     try {
         const userInfo = await User.findOne({ address: req.body.address })
         const gameInfo = await Game.findOne({})
-        if (!gameInfo) {
-            const newData = new Game({
-                totalPlaying: 0,
-                totalClaimable: 0,
-                totalDeposited: 0,
-                totalClaimed: 0,
-            })
-            await newData.save()
-        }
         if (userInfo) {
             if (userInfo.playing && userInfo.process) {
                 console.warn(`${req.body.address} is not claimed yet`)
