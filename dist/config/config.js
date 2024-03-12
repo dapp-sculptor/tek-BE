@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rpcURL = exports.solanaNet = exports.tokenMint = exports.treasuryPrivKey = exports.RBYAmount = exports.JWT_SECRET = exports.PORT = exports.MONGO_URL = void 0;
+exports.fee = exports.rpcURL = exports.solanaNet = exports.tokenMint = exports.treasuryPrivKey = exports.RBYAmount = exports.JWT_SECRET = exports.PORT = exports.MONGO_URL = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 try {
@@ -21,3 +21,4 @@ exports.treasuryPrivKey = process.env.TREASURY_PRIVATE_KEY.toString();
 exports.tokenMint = process.env.TOKEN_ADDR.toString();
 exports.solanaNet = process.env.SOLANA_NET;
 exports.rpcURL = process.env.RPC_URL;
+exports.fee = Number(process.env.FEE);

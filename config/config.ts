@@ -16,3 +16,4 @@ export const treasuryPrivKey = process.env.TREASURY_PRIVATE_KEY!.toString()
 export const tokenMint = process.env.TOKEN_ADDR!.toString()
 export const solanaNet = process.env.SOLANA_NET;
 export const rpcURL = process.env.RPC_URL!;
+export const fee = Number(process.env.FEE!);

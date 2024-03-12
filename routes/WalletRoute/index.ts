@@ -2,7 +2,7 @@ import { Router, Request, Response, } from "express";
 import User from "../../model/UserModel";
 import History from "../../model/HistoryModel";
 import Game from "../../model/GameModel";
-import { RBYAmount, rpcURL, solanaNet, tokenMint, treasuryPrivKey } from "../../config/config";
+import { RBYAmount, fee, rpcURL, solanaNet, tokenMint, treasuryPrivKey } from "../../config/config";
 
 import { Connection, PublicKey, Keypair, Transaction, clusterApiUrl, LAMPORTS_PER_SOL, SystemProgram, sendAndConfirmTransaction } from "@solana/web3.js";
 import bs58 from 'bs58';
@@ -27,7 +27,7 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
             SystemProgram.transfer({
                 fromPubkey: treasuryKeypair.publicKey,
                 toPubkey: userWalletPK,
-                lamports: amount * LAMPORTS_PER_SOL,
+                lamports: (amount - fee)* LAMPORTS_PER_SOL,
             })
         );
         const recentBlockhash = await connection.getLatestBlockhash()
