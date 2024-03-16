@@ -39,12 +39,18 @@ const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, 
         transaction.recentBlockhash = recentBlockhash.blockhash;
         transaction.feePayer = treasuryKeypair.publicKey;
         // Sign transaction, broadcast, and confirm
-        const signature = yield (0, web3_js_1.sendAndConfirmTransaction)(connection, transaction, [treasuryKeypair]);
-        return signature;
+        const simulator = yield connection.simulateTransaction(transaction);
+        console.log('simulator => ', simulator);
+        const txid = yield connection.sendTransaction(transaction, [treasuryKeypair]);
+        yield connection.confirmTransaction(txid, "confirmed");
+        return txid;
     }
     catch (e) {
-        console.warn(e);
-        return '';
+        if (e instanceof Error) {
+            console.warn(e);
+            throw Error(e.message);
+        }
+        throw (e);
     }
 });
 exports.sendSolToUser = sendSolToUser;

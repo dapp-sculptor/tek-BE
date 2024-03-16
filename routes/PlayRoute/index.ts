@@ -19,17 +19,20 @@ const genAngle = (index: number) => {
     } else {
         num = angle_arr[index]
     }
-    const angle = 12960 - 22.5 + Math.ceil(45 * (num + Math.random()))
+    const rand = Math.ceil(45 * (num + Math.random()))
+    const angle = 12960 - 22.5 + rand
     return angle
 }
+
 // Generate random number
 const genResult = () => {
     const origin = Math.random()
     for (let index = 0; index < rate_arr.length - 1; index++) {
         if (origin > rate_arr[index] && origin <= rate_arr[index + 1]) {
+            const reward = prize_arr[index]
+            const angle = genAngle(index)
             return {
-                reward: prize_arr[index],
-                angle: genAngle(index)
+                reward, angle
             }
         }
     }

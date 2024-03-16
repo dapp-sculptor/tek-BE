@@ -27,23 +27,25 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
             SystemProgram.transfer({
                 fromPubkey: treasuryKeypair.publicKey,
                 toPubkey: userWalletPK,
-                lamports: (amount - fee)* LAMPORTS_PER_SOL,
+                lamports: (amount - fee) * LAMPORTS_PER_SOL,
             })
         );
         const recentBlockhash = await connection.getLatestBlockhash()
         transaction.recentBlockhash = recentBlockhash.blockhash;
         transaction.feePayer = treasuryKeypair.publicKey
-
         // Sign transaction, broadcast, and confirm
-        const signature = await sendAndConfirmTransaction(
-            connection,
-            transaction,
-            [treasuryKeypair]
-        );
-        return signature
+        const simulator = await connection.simulateTransaction(transaction)
+        console.log('simulator => ', simulator)
+        const txid = await connection.sendTransaction(transaction, [treasuryKeypair])
+        await connection.confirmTransaction(txid, "confirmed")
+
+        return txid
     } catch (e) {
-        console.warn(e)
-        return ''
+        if (e instanceof Error) {
+            console.warn(e)
+            throw Error(e.message)
+        }
+        throw (e)
     }
 }
 
@@ -57,7 +59,7 @@ export const getTokenAccount = async () => {
         new PublicKey(tokenMint),
         treasuryKeypair.publicKey
     );
-    console.log('tes',treasuryKeypair,treasuryTokenAccount)
+    console.log('tes', treasuryKeypair, treasuryTokenAccount)
 
     return treasuryTokenAccount.address.toString()
 }
