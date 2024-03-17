@@ -47,6 +47,11 @@ const genResult = () => {
             };
         }
     }
+    const reward = prize_arr[4];
+    const angle = genAngle(4);
+    return {
+        reward, angle
+    };
 };
 PlayRouter.get('/test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

@@ -19,20 +19,19 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
             bs58.decode(treasuryPrivKey)
         )
 
-        // Connect to cluster
-
         // Add transfer instruction to transaction
         const userWalletPK = new PublicKey(userWallet);
         const transaction = new Transaction().add(
             SystemProgram.transfer({
                 fromPubkey: treasuryKeypair.publicKey,
                 toPubkey: userWalletPK,
-                lamports: (amount - fee) * LAMPORTS_PER_SOL,
+                lamports: Math.floor((amount - fee) * LAMPORTS_PER_SOL),
             })
         );
         const recentBlockhash = await connection.getLatestBlockhash()
         transaction.recentBlockhash = recentBlockhash.blockhash;
         transaction.feePayer = treasuryKeypair.publicKey
+        
         // Sign transaction, broadcast, and confirm
         const simulator = await connection.simulateTransaction(transaction)
         console.log('simulator => ', simulator)

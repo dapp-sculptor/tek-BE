@@ -27,13 +27,12 @@ const connection = new web3_js_1.Connection(config_1.rpcURL);
 const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
-        // Connect to cluster
         // Add transfer instruction to transaction
         const userWalletPK = new web3_js_1.PublicKey(userWallet);
         const transaction = new web3_js_1.Transaction().add(web3_js_1.SystemProgram.transfer({
             fromPubkey: treasuryKeypair.publicKey,
             toPubkey: userWalletPK,
-            lamports: (amount - config_1.fee) * web3_js_1.LAMPORTS_PER_SOL,
+            lamports: Math.floor((amount - config_1.fee) * web3_js_1.LAMPORTS_PER_SOL),
         }));
         const recentBlockhash = yield connection.getLatestBlockhash();
         transaction.recentBlockhash = recentBlockhash.blockhash;
