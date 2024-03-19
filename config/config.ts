@@ -17,3 +17,4 @@ export const tokenMint = process.env.TOKEN_ADDR!.toString()
 export const solanaNet = process.env.SOLANA_NET;
 export const rpcURL = process.env.RPC_URL!;
 export const fee = Number(process.env.FEE!);
+export const total_angle = Number(process.env.ANGLE);

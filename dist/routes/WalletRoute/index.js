@@ -127,6 +127,7 @@ WalletRouter.post('/deposit', (req, res) => __awaiter(void 0, void 0, void 0, fu
                 console.warn(`${req.body.address} is playing now`);
                 return res.status(400).json({ error: 'You have are playing game now' });
             }
+            yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, { deposit: true });
             const tx = new HistoryModel_1.default({
                 address: req.body.address,
                 action: 'deposit',

@@ -2,6 +2,7 @@ import { Router, Request, Response, } from "express";
 import User from "../../model/UserModel";
 import History from "../../model/HistoryModel";
 import Game from "../../model/GameModel";
+import { total_angle } from "../../config/config";
 
 // Create a new instance of the Express Router of handle wallet
 const PlayRouter = Router();
@@ -26,7 +27,7 @@ const genAngle = (index: number) => {
         num = angle_arr[index]
     }
     const rand = Math.ceil(45 * (num + Math.random()))
-    const angle = 12960 - 22.5 + rand
+    const angle = total_angle - 22.5 + rand
     return angle
 }
 

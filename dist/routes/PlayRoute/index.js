@@ -16,6 +16,7 @@ const express_1 = require("express");
 const UserModel_1 = __importDefault(require("../../model/UserModel"));
 const HistoryModel_1 = __importDefault(require("../../model/HistoryModel"));
 const GameModel_1 = __importDefault(require("../../model/GameModel"));
+const config_1 = require("../../config/config");
 // Create a new instance of the Express Router of handle wallet
 const PlayRouter = (0, express_1.Router)();
 const rate_arr = [0, 0.35, 0.55, 0.75, 0.9, 1];
@@ -31,7 +32,7 @@ const genAngle = (index) => {
         num = angle_arr[index];
     }
     const rand = Math.ceil(45 * (num + Math.random()));
-    const angle = 12960 - 22.5 + rand;
+    const angle = config_1.total_angle - 22.5 + rand;
     return angle;
 };
 // Generate random number

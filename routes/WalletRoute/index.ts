@@ -14,7 +14,7 @@ const WalletRouter = Router();
 const connection = new Connection(rpcURL);
 
 const checkTx = async (address: string, signature: string) => {
-    const decoded = await connection.getParsedTransaction(signature,'confirmed')
+    const decoded = await connection.getParsedTransaction(signature, 'confirmed')
     const treasuryKeypair = Keypair.fromSecretKey(
         bs58.decode(treasuryPrivKey)
     )
@@ -137,6 +137,8 @@ WalletRouter.post('/deposit', async (req: Request, res: Response) => {
                 console.warn(`${req.body.address} is playing now`)
                 return res.status(400).json({ error: 'You have are playing game now' })
             }
+
+            await User.findOneAndUpdate({ address: req.body.address }, { deposit: true })
             const tx = new History({
                 address: req.body.address,
                 action: 'deposit',
