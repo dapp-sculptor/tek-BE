@@ -6,8 +6,14 @@ import Game from "../../model/GameModel";
 // Create a new instance of the Express Router of handle wallet
 const PlayRouter = Router();
 
+type Item = {
+    name: string;
+    img: string;
+    percentpage: number;
+};
+
+
 const rate_arr = [0, 0.35, 0.55, 0.75, 0.9, 1]
-const prize_arr = [0, 0.05, 0.1, 0.2, 0.5]
 const angle_arr = [-1, 2, 6, 4, 0]
 const zero_arr = [1, 3, 5, 7]
 
@@ -25,18 +31,20 @@ const genAngle = (index: number) => {
 }
 
 // Generate random number
-const genResult = () => {
+const genResult = (prize: Item[]) => {
+    const sortedArray = [...prize].sort((a, b) => a.percentpage - b.percentpage);
+    const resultArray = sortedArray.map(item => item.percentpage).filter((value, index, self) => self.indexOf(value) === index)
     const origin = Math.random()
     for (let index = 0; index < rate_arr.length - 1; index++) {
         if (origin > rate_arr[index] && origin <= rate_arr[index + 1]) {
-            const reward = prize_arr[index]
+            const reward = resultArray[index]
             const angle = genAngle(index)
             return {
                 reward, angle
             }
         }
     }
-    const reward = prize_arr[4]
+    const reward = resultArray[4]
     const angle = genAngle(4)
     return {
         reward, angle
@@ -65,7 +73,7 @@ PlayRouter.post('/play', async (req: Request, res: Response) => {
                 return res.status(400).json({ error: 'You are not claimed yet' })
             }
             const prize = req.body.prize
-            const { reward, angle } = genResult()!
+            const { reward, angle } = genResult(prize)!
             await User.findOneAndUpdate({ address: req.body.address }, {
                 deposit: false,
                 playing: true,

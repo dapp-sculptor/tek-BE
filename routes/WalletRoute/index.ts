@@ -6,12 +6,35 @@ import { RBYAmount, fee, rpcURL, solanaNet, tokenMint, treasuryPrivKey } from ".
 
 import { Connection, PublicKey, Keypair, Transaction, clusterApiUrl, LAMPORTS_PER_SOL, SystemProgram, sendAndConfirmTransaction } from "@solana/web3.js";
 import bs58 from 'bs58';
-import { getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
+import { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
 
 // Create a new instance of the Express Router of handle wallet
 const WalletRouter = Router();
 
 const connection = new Connection(rpcURL);
+
+const checkTx = async (address: string, signature: string) => {
+    const decoded = await connection.getParsedTransaction(signature,'confirmed')
+    const treasuryKeypair = Keypair.fromSecretKey(
+        bs58.decode(treasuryPrivKey)
+    )
+    console.log('decoded->\n', signature, decoded)
+    const treasuryPubKey = treasuryKeypair.publicKey.toString()
+    const treasuryTkAccount = await getTokenAccount()
+    const userPubKey = address
+    const userTkAccount = await getAssociatedTokenAddress(new PublicKey(tokenMint), new PublicKey(address))
+
+    const mintInfo = await connection.getParsedAccountInfo(new PublicKey(tokenMint))
+    // @ts-ignore
+    const numberDecimals: number = mintInfo.value?.data.parsed?.info.decimals;
+    const tkAmount = RBYAmount * Math.pow(10, numberDecimals)
+    const solAmount = fee * LAMPORTS_PER_SOL
+    const tkTransfer = `{"parsed":{"info":{"amount":"${tkAmount}","authority":"${userPubKey}","destination":"${treasuryTkAccount}","source":"${userTkAccount}"},"type":"transfer"},"program":"spl-token","programId":"${TOKEN_PROGRAM_ID.toString()}","stackHeight":null}`
+    const solTransfer = `{"parsed":{"info":{"destination":"${treasuryPubKey}","lamports":${solAmount},"source":"${userPubKey}"},"type":"transfer"},"program":"system","programId":"${SystemProgram.programId.toString()}","stackHeight":null}`
+
+    const result = (JSON.stringify(decoded?.transaction.message.instructions[2]) == tkTransfer) && (JSON.stringify(decoded?.transaction.message.instructions[3]) == solTransfer)
+    return result
+}
 
 export const sendSolToUser = async (userWallet: string, amount: number) => {
     try {
@@ -31,7 +54,7 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
         const recentBlockhash = await connection.getLatestBlockhash()
         transaction.recentBlockhash = recentBlockhash.blockhash;
         transaction.feePayer = treasuryKeypair.publicKey
-        
+
         // Sign transaction, broadcast, and confirm
         const simulator = await connection.simulateTransaction(transaction)
         console.log('simulator => ', simulator)
@@ -44,11 +67,20 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
             console.warn(e)
             throw Error(e.message)
         }
+        console.warn(e)
         throw (e)
     }
 }
 
-export const getTokenAccount = async () => {
+export const checkTreasuryBalance = async (amount: number) => {
+    const treasuryKeypair = Keypair.fromSecretKey(
+        bs58.decode(treasuryPrivKey)
+    )
+    const balance = await connection.getBalance(treasuryKeypair.publicKey)
+    return (balance > amount * LAMPORTS_PER_SOL)
+}
+
+const getTokenAccount = async () => {
     const treasuryKeypair = Keypair.fromSecretKey(
         bs58.decode(treasuryPrivKey)
     )
@@ -58,7 +90,6 @@ export const getTokenAccount = async () => {
         new PublicKey(tokenMint),
         treasuryKeypair.publicKey
     );
-    console.log('tes', treasuryKeypair, treasuryTokenAccount)
 
     return treasuryTokenAccount.address.toString()
 }
@@ -77,11 +108,21 @@ WalletRouter.get('/test', async (req: Request, res: Response) => {
 // @params   address, amount, tx
 WalletRouter.post('/deposit', async (req: Request, res: Response) => {
     try {
+        if (!req.body.tx) {
+            console.warn(`${req.body.address} is using empty tx`)
+            await User.findOneAndUpdate({ address: req.body.address }, { risk: 'Use empty transaction' }, { upsert: true })
+            return res.status(400).json({ error: 'You are using empty tx signature' })
+        }
         const txInfo = await History.findOne({ tx: req.body.tx })
         if (txInfo) {
             console.warn(`${req.body.address} is using last tx`)
-            await User.findOneAndUpdate({ address: req.body.address }, { risk: 'Usd old transaction' }, { upsert: true })
+            await User.findOneAndUpdate({ address: req.body.address }, { risk: 'Use old transaction' }, { upsert: true })
             return res.status(400).json({ error: 'You are using old tx signature' })
+        }
+        if (!(await checkTx(req.body.address, req.body.tx))) {
+            console.warn(`${req.body.address} is using invalid tx`)
+            await User.findOneAndUpdate({ address: req.body.address }, { risk: 'Use invalid transaction' }, { upsert: true })
+            return res.status(400).json({ error: 'You are using invalid tx signature' })
         }
         const userInfo = await User.findOne({ address: req.body.address })
         if (userInfo) {
@@ -95,11 +136,6 @@ WalletRouter.post('/deposit', async (req: Request, res: Response) => {
             if (userInfo.playing) {
                 console.warn(`${req.body.address} is playing now`)
                 return res.status(400).json({ error: 'You have are playing game now' })
-            }
-            if (Number(req.body.amount) >= RBYAmount) await User.findOneAndUpdate({ address: req.body.address }, { deposit: true })
-            else {
-                console.warn(`${req.body.address} should more deposit`)
-                return res.status(400).json({ error: 'You should more deposit' })
             }
             const tx = new History({
                 address: req.body.address,
@@ -115,24 +151,9 @@ WalletRouter.post('/deposit', async (req: Request, res: Response) => {
                 }
             })
         } else {
-            // // User new deposit
-            // const newUser = new User({
-            //     address: req.body.address,
-            //     depositAmount: req.body.amount,
-            // })
-            // await newUser.save()
-            // const tx = new History({
-            //     address: req.body.address,
-            //     action: 'deposit',
-            //     amount: req.body.amount,
-            //     tx: req.body.tx
-            // })
-            // await tx.save()
-            // return res.json({
-            //     message: "Successfully registered and deposited", data: {
-            //         amount: req.body.amount
-            //     }
-            // })
+            // User not exist
+            console.log(`${req.body.address} not exist in our db`)
+            return res.status(404).json({ error: "You are not registered to our platform" })
         }
     } catch (e) {
         console.warn(e)
@@ -195,6 +216,10 @@ WalletRouter.post('/fetch', async (req: Request, res: Response) => {
 // @access   Public
 WalletRouter.post('/claim', async (req: Request, res: Response) => {
     try {
+        if (!req.body.address) {
+            console.warn(`Empty address`)
+            return res.status(400).json({ error: 'Empty address' })
+        }
         const userInfo = await User.findOne({ address: req.body.address })
         const gameInfo = await Game.findOne({})
         if (userInfo) {
@@ -212,6 +237,12 @@ WalletRouter.post('/claim', async (req: Request, res: Response) => {
             if (userInfo.process) {
                 console.warn(`${req.body.address} is not finish game yet`)
                 return res.status(400).json({ error: 'Your game is not finished yet' })
+            }
+
+            if (!(await checkTreasuryBalance(userInfo.claimableAmount))) {
+                console.warn(`${req.body.address} treasury has low balance`)
+                return res.status(400).json({ error: 'Treasury has low balance' })
+
             }
 
             let signature: string = ''

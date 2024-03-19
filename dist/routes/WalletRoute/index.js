@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTokenAccount = exports.sendSolToUser = void 0;
+exports.checkTreasuryBalance = exports.sendSolToUser = void 0;
 const express_1 = require("express");
 const UserModel_1 = __importDefault(require("../../model/UserModel"));
 const HistoryModel_1 = __importDefault(require("../../model/HistoryModel"));
@@ -24,6 +24,25 @@ const spl_token_1 = require("@solana/spl-token");
 // Create a new instance of the Express Router of handle wallet
 const WalletRouter = (0, express_1.Router)();
 const connection = new web3_js_1.Connection(config_1.rpcURL);
+const checkTx = (address, signature) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    const decoded = yield connection.getParsedTransaction(signature, 'confirmed');
+    const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
+    console.log('decoded->\n', signature, decoded);
+    const treasuryPubKey = treasuryKeypair.publicKey.toString();
+    const treasuryTkAccount = yield getTokenAccount();
+    const userPubKey = address;
+    const userTkAccount = yield (0, spl_token_1.getAssociatedTokenAddress)(new web3_js_1.PublicKey(config_1.tokenMint), new web3_js_1.PublicKey(address));
+    const mintInfo = yield connection.getParsedAccountInfo(new web3_js_1.PublicKey(config_1.tokenMint));
+    // @ts-ignore
+    const numberDecimals = (_b = (_a = mintInfo.value) === null || _a === void 0 ? void 0 : _a.data.parsed) === null || _b === void 0 ? void 0 : _b.info.decimals;
+    const tkAmount = config_1.RBYAmount * Math.pow(10, numberDecimals);
+    const solAmount = config_1.fee * web3_js_1.LAMPORTS_PER_SOL;
+    const tkTransfer = `{"parsed":{"info":{"amount":"${tkAmount}","authority":"${userPubKey}","destination":"${treasuryTkAccount}","source":"${userTkAccount}"},"type":"transfer"},"program":"spl-token","programId":"${spl_token_1.TOKEN_PROGRAM_ID.toString()}","stackHeight":null}`;
+    const solTransfer = `{"parsed":{"info":{"destination":"${treasuryPubKey}","lamports":${solAmount},"source":"${userPubKey}"},"type":"transfer"},"program":"system","programId":"${web3_js_1.SystemProgram.programId.toString()}","stackHeight":null}`;
+    const result = (JSON.stringify(decoded === null || decoded === void 0 ? void 0 : decoded.transaction.message.instructions[2]) == tkTransfer) && (JSON.stringify(decoded === null || decoded === void 0 ? void 0 : decoded.transaction.message.instructions[3]) == solTransfer);
+    return result;
+});
 const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
@@ -49,17 +68,22 @@ const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, 
             console.warn(e);
             throw Error(e.message);
         }
+        console.warn(e);
         throw (e);
     }
 });
 exports.sendSolToUser = sendSolToUser;
+const checkTreasuryBalance = (amount) => __awaiter(void 0, void 0, void 0, function* () {
+    const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
+    const balance = yield connection.getBalance(treasuryKeypair.publicKey);
+    return (balance > amount * web3_js_1.LAMPORTS_PER_SOL);
+});
+exports.checkTreasuryBalance = checkTreasuryBalance;
 const getTokenAccount = () => __awaiter(void 0, void 0, void 0, function* () {
     const treasuryKeypair = web3_js_1.Keypair.fromSecretKey(bs58_1.default.decode(config_1.treasuryPrivKey));
     const treasuryTokenAccount = yield (0, spl_token_1.getOrCreateAssociatedTokenAccount)(connection, treasuryKeypair, new web3_js_1.PublicKey(config_1.tokenMint), treasuryKeypair.publicKey);
-    console.log('tes', treasuryKeypair, treasuryTokenAccount);
     return treasuryTokenAccount.address.toString();
 });
-exports.getTokenAccount = getTokenAccount;
 WalletRouter.get('/test', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         res.json('Wallet router is working now');
@@ -75,11 +99,21 @@ WalletRouter.get('/test', (req, res) => __awaiter(void 0, void 0, void 0, functi
 // @params   address, amount, tx
 WalletRouter.post('/deposit', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.body.tx) {
+            console.warn(`${req.body.address} is using empty tx`);
+            yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, { risk: 'Use empty transaction' }, { upsert: true });
+            return res.status(400).json({ error: 'You are using empty tx signature' });
+        }
         const txInfo = yield HistoryModel_1.default.findOne({ tx: req.body.tx });
         if (txInfo) {
             console.warn(`${req.body.address} is using last tx`);
-            yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, { risk: 'Usd old transaction' }, { upsert: true });
+            yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, { risk: 'Use old transaction' }, { upsert: true });
             return res.status(400).json({ error: 'You are using old tx signature' });
+        }
+        if (!(yield checkTx(req.body.address, req.body.tx))) {
+            console.warn(`${req.body.address} is using invalid tx`);
+            yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, { risk: 'Use invalid transaction' }, { upsert: true });
+            return res.status(400).json({ error: 'You are using invalid tx signature' });
         }
         const userInfo = yield UserModel_1.default.findOne({ address: req.body.address });
         if (userInfo) {
@@ -92,12 +126,6 @@ WalletRouter.post('/deposit', (req, res) => __awaiter(void 0, void 0, void 0, fu
             if (userInfo.playing) {
                 console.warn(`${req.body.address} is playing now`);
                 return res.status(400).json({ error: 'You have are playing game now' });
-            }
-            if (Number(req.body.amount) >= config_1.RBYAmount)
-                yield UserModel_1.default.findOneAndUpdate({ address: req.body.address }, { deposit: true });
-            else {
-                console.warn(`${req.body.address} should more deposit`);
-                return res.status(400).json({ error: 'You should more deposit' });
             }
             const tx = new HistoryModel_1.default({
                 address: req.body.address,
@@ -114,24 +142,9 @@ WalletRouter.post('/deposit', (req, res) => __awaiter(void 0, void 0, void 0, fu
             });
         }
         else {
-            // // User new deposit
-            // const newUser = new User({
-            //     address: req.body.address,
-            //     depositAmount: req.body.amount,
-            // })
-            // await newUser.save()
-            // const tx = new History({
-            //     address: req.body.address,
-            //     action: 'deposit',
-            //     amount: req.body.amount,
-            //     tx: req.body.tx
-            // })
-            // await tx.save()
-            // return res.json({
-            //     message: "Successfully registered and deposited", data: {
-            //         amount: req.body.amount
-            //     }
-            // })
+            // User not exist
+            console.log(`${req.body.address} not exist in our db`);
+            return res.status(404).json({ error: "You are not registered to our platform" });
         }
     }
     catch (e) {
@@ -195,6 +208,10 @@ WalletRouter.post('/fetch', (req, res) => __awaiter(void 0, void 0, void 0, func
 // @access   Public
 WalletRouter.post('/claim', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        if (!req.body.address) {
+            console.warn(`Empty address`);
+            return res.status(400).json({ error: 'Empty address' });
+        }
         const userInfo = yield UserModel_1.default.findOne({ address: req.body.address });
         const gameInfo = yield GameModel_1.default.findOne({});
         if (userInfo) {
@@ -209,6 +226,10 @@ WalletRouter.post('/claim', (req, res) => __awaiter(void 0, void 0, void 0, func
             if (userInfo.process) {
                 console.warn(`${req.body.address} is not finish game yet`);
                 return res.status(400).json({ error: 'Your game is not finished yet' });
+            }
+            if (!(yield (0, exports.checkTreasuryBalance)(userInfo.claimableAmount))) {
+                console.warn(`${req.body.address} treasury has low balance`);
+                return res.status(400).json({ error: 'Treasury has low balance' });
             }
             let signature = '';
             if (userInfo.claimableAmount) {
@@ -250,7 +271,7 @@ WalletRouter.post('/claim', (req, res) => __awaiter(void 0, void 0, void 0, func
 }));
 WalletRouter.get('/tokenaccount', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        res.json(yield (0, exports.getTokenAccount)());
+        res.json(yield getTokenAccount());
     }
     catch (e) {
         console.log(e);
