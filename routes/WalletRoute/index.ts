@@ -58,10 +58,16 @@ export const sendSolToUser = async (userWallet: string, amount: number) => {
         // Sign transaction, broadcast, and confirm
         const simulator = await connection.simulateTransaction(transaction)
         console.log('simulator => ', simulator)
-        const txid = await connection.sendTransaction(transaction, [treasuryKeypair])
-        await connection.confirmTransaction(txid, "confirmed")
+        while (true) {
+            try {
+                const txid = await connection.sendTransaction(transaction, [treasuryKeypair])
+                await connection.confirmTransaction(txid, "confirmed")
+                return txid
+            } catch (e) {
+                console.warn(`${userWalletPK} -> ${e}`)
+            }
+        }
 
-        return txid
     } catch (e) {
         if (e instanceof Error) {
             console.warn(e)

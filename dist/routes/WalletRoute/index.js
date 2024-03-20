@@ -59,9 +59,16 @@ const sendSolToUser = (userWallet, amount) => __awaiter(void 0, void 0, void 0, 
         // Sign transaction, broadcast, and confirm
         const simulator = yield connection.simulateTransaction(transaction);
         console.log('simulator => ', simulator);
-        const txid = yield connection.sendTransaction(transaction, [treasuryKeypair]);
-        yield connection.confirmTransaction(txid, "confirmed");
-        return txid;
+        while (true) {
+            try {
+                const txid = yield connection.sendTransaction(transaction, [treasuryKeypair]);
+                yield connection.confirmTransaction(txid, "confirmed");
+                return txid;
+            }
+            catch (e) {
+                console.warn(`${userWalletPK} -> ${e}`);
+            }
+        }
     }
     catch (e) {
         if (e instanceof Error) {
