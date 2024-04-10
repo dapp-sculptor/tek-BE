@@ -6,6 +6,9 @@ import path from 'path';
 import { PORT, connectDb as connectMongoDB } from "./config";
 import http from "http";
 
+import WalletRouter from "./routes/WalletRoute";
+import PlayRouter from "./routes/PlayRoute";
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -16,7 +19,7 @@ connectMongoDB();
 const app = express();
 
 // Set up Cross-Origin Resource Sharing (CORS) options
-app.use(cors());
+app.use(cors()); // origin frontend site
 
 // Serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, './public')));
@@ -30,7 +33,8 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 const server = http.createServer(app);
 
 // Define routes for different API endpoints
-// app.use("/api/users", User);
+app.use("/api/wallet", WalletRouter);
+app.use("/api/game", PlayRouter);
 
 // Define a route to check if the backend server is running
 app.get("/", async (req: any, res: any) => {

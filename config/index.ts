@@ -21,7 +21,6 @@ export const connectDb = async () => {
     try {
       if (MONGO_URL) {
         const connection = await mongoose.connect(MONGO_URL);
-        // console.log(`MONGODB CONNECTED : ${connection.connection.host}`);
         console.log(`MONGODB CONNECTED`);
         isConnected = true;
       } else {
