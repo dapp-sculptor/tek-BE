@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import express from "express";
 import path from 'path';
 
-import { PORT, connectMongoDB } from "./config";
+import { PORT } from "./config";
 import http from "http";
 import { UserRouter } from "./routes";
 
@@ -26,7 +26,7 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// const server = http.createServer(app);
+const server = http.createServer(app);
 
 // Define routes for different API endpoints
 app.use("/api/users", UserRouter);
@@ -37,6 +37,6 @@ app.get("/", async (req: any, res: any) => {
 });
 
 // Start the Express server to listen on the specified port
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

@@ -17,7 +17,7 @@ UserRouter.post(
         const info = data[address]
         res.json(info.amount)
       } else {
-        console.error(`${address} => User not found`)
+        console.error(`{${address}} => User not found`)
         return res.status(404).send({ error: 'User not found' })
       }
 
