@@ -12,7 +12,7 @@ UserRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { address } = req.body;
-      const data = JSON.parse(fs.readFileSync("result.json", `utf8`))
+      const data = JSON.parse(fs.readFileSync("./routes/result.json", `utf8`))
       if (address in data) {
         const info = data[address]
         res.json(info.amount)

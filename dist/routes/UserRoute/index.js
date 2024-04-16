@@ -22,7 +22,7 @@ const UserRouter = (0, express_1.Router)();
 UserRouter.post("/amount", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { address } = req.body;
-        const data = JSON.parse(fs_1.default.readFileSync("result.json", `utf8`));
+        const data = JSON.parse(fs_1.default.readFileSync("./routes/result.json", `utf8`));
         if (address in data) {
             const info = data[address];
             res.json(info.amount);

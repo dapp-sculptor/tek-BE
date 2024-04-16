@@ -15,7 +15,7 @@
     "run": "ts-node index.ts",
     "start": "nodemon src/index.ts",
     "ts.check": "tsc --project tsconfig.json",
-    "build": "rimraf tsc --build",
+    "build": "tsc --build",
     "add-build": "git add dist"
   },
   "dependencies": {
