@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import { data } from "../data"
 import fs from 'fs';
 
 // Create a new instance of the Express Router
@@ -12,8 +13,8 @@ UserRouter.post(
   async (req: Request, res: Response) => {
     try {
       const { address } = req.body;
-      const data = JSON.parse(fs.readFileSync("./routes/result.json", `utf8`))
       if (address in data) {
+        // @ts-ignore
         const info = data[address]
         res.json(info.amount)
       } else {

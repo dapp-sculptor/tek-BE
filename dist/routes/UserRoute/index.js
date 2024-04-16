@@ -8,12 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const fs_1 = __importDefault(require("fs"));
+const data_1 = require("../data");
 // Create a new instance of the Express Router
 const UserRouter = (0, express_1.Router)();
 // @route    POST api/users/signup
@@ -22,9 +19,9 @@ const UserRouter = (0, express_1.Router)();
 UserRouter.post("/amount", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { address } = req.body;
-        const data = JSON.parse(fs_1.default.readFileSync("./routes/result.json", `utf8`));
-        if (address in data) {
-            const info = data[address];
+        if (address in data_1.data) {
+            // @ts-ignore
+            const info = data_1.data[address];
             res.json(info.amount);
         }
         else {

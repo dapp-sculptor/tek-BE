@@ -1,4 +1,7 @@
-{
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.data = void 0;
+exports.data = {
     "0x0ae7abaa1e3276784a87fcddbd7a36949e97dc25": {
         "token": [
             {
@@ -16932,4 +16935,4 @@
         },
         "claimable": true
     }
-}
+};
