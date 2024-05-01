@@ -8,19 +8,19 @@ const UserRouter = Router();
 // @route    POST api/users/signup
 // @desc     Register user
 // @access   Public
-UserRouter.post(
-  "/amount",
+UserRouter.get(
+  "/:address",
   async (req: Request, res: Response) => {
+    console.log('here')
     try {
-      const { address } = req.body;
-      if (address in data) {
-        // @ts-ignore
-        const info = data[address]
-        res.json(info.amount)
-      } else {
-        console.error(`{${address}} => User not found`)
-        return res.status(404).send({ error: 'User not found' })
-      }
+      const { address } = req.params;
+      console.log(address)
+      data.map((item: { address: string, count: number, claimableAmount: number }) => {
+        if (item.address == address) {
+          console.log(item.claimableAmount)
+          res.json(item.claimableAmount)
+        }
+      })
 
     } catch (error: any) {
       console.error(error);

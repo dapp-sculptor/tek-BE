@@ -16,18 +16,17 @@ const UserRouter = (0, express_1.Router)();
 // @route    POST api/users/signup
 // @desc     Register user
 // @access   Public
-UserRouter.post("/amount", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+UserRouter.get("/:address", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('here');
     try {
-        const { address } = req.body;
-        if (address in data_1.data) {
-            // @ts-ignore
-            const info = data_1.data[address];
-            res.json(info.amount);
-        }
-        else {
-            console.error(`{${address}} => User not found`);
-            return res.status(404).send({ error: 'User not found' });
-        }
+        const { address } = req.params;
+        console.log(address);
+        data_1.data.map((item) => {
+            if (item.address == address) {
+                console.log(item.claimableAmount);
+                res.json(item.claimableAmount);
+            }
+        });
     }
     catch (error) {
         console.error(error);
