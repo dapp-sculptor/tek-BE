@@ -21,7 +21,7 @@ UserRouter.get("/:address", (req, res) => __awaiter(void 0, void 0, void 0, func
     try {
         const { address } = req.params;
         for (let i = 0; i < data_1.data.length; i++) {
-            if (data_1.data[i].address == address) {
+            if (data_1.data[i].address.toLowerCase() == address.toLowerCase()) {
                 console.log(data_1.data[i].claimableAmount);
                 return res.json(data_1.data[i].claimableAmount);
             }

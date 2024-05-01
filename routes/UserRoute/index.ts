@@ -15,7 +15,7 @@ UserRouter.get(
     try {
       const { address } = req.params;
       for (let i = 0; i < data.length; i++) {
-        if (data[i].address == address) {
+        if (data[i].address.toLowerCase() == address.toLowerCase()) {
           console.log(data[i].claimableAmount)
           return res.json(data[i].claimableAmount)
         }
