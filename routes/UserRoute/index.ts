@@ -14,14 +14,13 @@ UserRouter.get(
     console.log('here')
     try {
       const { address } = req.params;
-      console.log(address)
-      data.map((item: { address: string, count: number, claimableAmount: number }) => {
-        if (item.address == address) {
-          console.log(item.claimableAmount)
-          res.json(item.claimableAmount)
+      for (let i = 0; i < data.length; i++) {
+        if (data[i].address == address) {
+          console.log(data[i].claimableAmount)
+          return res.json(data[i].claimableAmount)
         }
-      })
-
+      }
+      return res.json(0)
     } catch (error: any) {
       console.error(error);
       return res.status(500).send({ error });

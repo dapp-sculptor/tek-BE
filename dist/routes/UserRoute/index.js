@@ -20,13 +20,13 @@ UserRouter.get("/:address", (req, res) => __awaiter(void 0, void 0, void 0, func
     console.log('here');
     try {
         const { address } = req.params;
-        console.log(address);
-        data_1.data.map((item) => {
-            if (item.address == address) {
-                console.log(item.claimableAmount);
-                res.json(item.claimableAmount);
+        for (let i = 0; i < data_1.data.length; i++) {
+            if (data_1.data[i].address == address) {
+                console.log(data_1.data[i].claimableAmount);
+                return res.json(data_1.data[i].claimableAmount);
             }
-        });
+        }
+        return res.json(0);
     }
     catch (error) {
         console.error(error);
