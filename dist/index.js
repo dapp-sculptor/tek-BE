@@ -18,8 +18,11 @@ const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
 const config_1 = require("./config");
 const routes_1 = require("./routes");
+const db_1 = require("./config/db");
 // Create an instance of the Express application
 const app = (0, express_1.default)();
+// Connect mongo db atlas
+(0, db_1.connectMongoDB)();
 // Set up Cross-Origin Resource Sharing (CORS) options
 app.use((0, cors_1.default)());
 // Serve static files from the 'public' folder

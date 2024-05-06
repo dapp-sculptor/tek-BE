@@ -1,4 +1,4 @@
-export const data = [
+[
   {
     "address": "0x62af245207a04bcbc2b95f177e0614bebf966758",
     "count": 801,
@@ -6007,12 +6007,6 @@ export const data = [
   },
   {
     "address": "0x87a3dDB5fB751De25C7997DBEaf329C892E20BD3",
-    "count": 0,
-    "claimableAmount": 0,
-    "winnerState": true
-  },
-  {
-    "address": "0x3Fa2DBfAf75C92F7A35107a475932A202eE8Aaed",
     "count": 0,
     "claimableAmount": 0,
     "winnerState": true
