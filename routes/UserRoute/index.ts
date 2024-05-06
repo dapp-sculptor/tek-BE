@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { data } from "../data"
 import fs from 'fs';
+import DataModel from "../../model";
 
 // Create a new instance of the Express Router
 const UserRouter = Router();
@@ -14,13 +15,11 @@ UserRouter.get(
     console.log('here')
     try {
       const { address } = req.params;
-      for (let i = 0; i < data.length; i++) {
-        if (data[i].address.toLowerCase() == address.toLowerCase()) {
-          console.log(data[i].claimableAmount)
-          return res.json(data[i].claimableAmount)
-        }
-      }
-      return res.json(0)
+      const query = { address: { $regex: new RegExp(address, 'i') } };
+      console.log(query)
+
+      const result = await DataModel.findOne(query);
+      return res.json({ claimableAmount: result?.claimableAmount ?? 0, winnerState: result?.winnerState ?? false })
     } catch (error: any) {
       console.error(error);
       return res.status(500).send({ error });

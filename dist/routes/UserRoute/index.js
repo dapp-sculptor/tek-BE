@@ -8,25 +8,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const data_1 = require("../data");
+const model_1 = __importDefault(require("../../model"));
 // Create a new instance of the Express Router
 const UserRouter = (0, express_1.Router)();
 // @route    POST api/users/signup
 // @desc     Register user
 // @access   Public
 UserRouter.get("/:address", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     console.log('here');
     try {
         const { address } = req.params;
-        for (let i = 0; i < data_1.data.length; i++) {
-            if (data_1.data[i].address.toLowerCase() == address.toLowerCase()) {
-                console.log(data_1.data[i].claimableAmount);
-                return res.json(data_1.data[i].claimableAmount);
-            }
-        }
-        return res.json(0);
+        const query = { address: { $regex: new RegExp(address, 'i') } };
+        console.log(query);
+        const result = yield model_1.default.findOne(query);
+        return res.json({ claimableAmount: (_a = result === null || result === void 0 ? void 0 : result.claimableAmount) !== null && _a !== void 0 ? _a : 0, winnerState: (_b = result === null || result === void 0 ? void 0 : result.winnerState) !== null && _b !== void 0 ? _b : false });
     }
     catch (error) {
         console.error(error);

@@ -5,9 +5,13 @@ import path from 'path';
 
 import { PORT } from "./config";
 import { UserRouter } from "./routes";
+import { connectMongoDB } from "./config/db";
 
 // Create an instance of the Express application
 const app = express();
+
+// Connect mongo db atlas
+connectMongoDB()
 
 // Set up Cross-Origin Resource Sharing (CORS) options
 app.use(cors());
@@ -33,3 +37,4 @@ app.get("/", async (req: any, res: any) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
