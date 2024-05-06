@@ -24,10 +24,11 @@ const app = (0, express_1.default)();
 // Connect mongo db atlas
 (0, db_1.connectMongoDB)();
 // Set up Cross-Origin Resource Sharing (CORS) options
-app.use((0, cors_1.default)({
-    origin: ["https://tekio.tech/"],
-    methods: ['GET', 'POST'],
-}));
+app.use((0, cors_1.default)());
+// app.use(cors({
+//   origin: ["https://tekio.tech/"],
+//   methods: ['GET', 'POST'],
+// }));
 // Serve static files from the 'public' folder
 app.use(express_1.default.static(path_1.default.join(__dirname, './public')));
 // Parse incoming JSON requests using body-parser

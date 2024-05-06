@@ -14,10 +14,11 @@ const app = express();
 connectMongoDB()
 
 // Set up Cross-Origin Resource Sharing (CORS) options
-app.use(cors({
-  origin: ["https://tekio.tech/"],
-  methods: ['GET', 'POST'],
-}));
+app.use(cors());
+// app.use(cors({
+//   origin: ["https://tekio.tech/"],
+//   methods: ['GET', 'POST'],
+// }));
 
 // Serve static files from the 'public' folder
 app.use(express.static(path.join(__dirname, './public')));
